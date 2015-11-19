@@ -1,5 +1,1 @@
-This is a 10 lines implementation of shallow feed forward neural networks training from scratch using only numpy and autograd.
-
-Autograd is awesome! :D
-
-https://github.com/HIPS/autograd
+This is an example of very deep neural network, where every of its 10000 layers has only 4 neurons.

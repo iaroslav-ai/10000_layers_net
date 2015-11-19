@@ -10,8 +10,9 @@ from sgd_py import TrainNetwork
 from example_data import GenerateData
 from numgrad import NumericalGradient
 from mnist_py import MNIST
+import matplotlib.pyplot as plt
 
-N = 100;
+N = 1000;
 
 # MNIST loader:
 data = MNIST(verbose=True);
@@ -44,74 +45,51 @@ while not compressed:
     H = H - np.min(H);
     H = H / np.max(H);
     X = np.random.rand(H.shape[0],1);
-    X[:,0] = H
+    X[:,0] = H*100
     
 xsz = 1;
 ysz = 1;
 
-means = X[1:,0] + X[:-1,0];
-W = np.ones(3, X.shape[0]);
-W[0,1:] = -means;
-W[0,0] = min(X) - 1;
+# network objective
+def trainobj(ffnnd):
+    obj = 0
+    Yp = X[:,0];
+    for i in range(len(X)):
+        Yp[i] = ffnnd.forward(X[i,])
+    
+    obj = 0.5 * (np.linalg.norm(Yp - np.transpose(Y), 2) ** 2);
+    return obj
+
+means = X[:-1,0];
+W = np.ones((3, X.shape[0]));
+W[1,1:] = -means;
+W[1,0] = -(min(X) - 1);
 
 Inputs = np.column_stack((X, X[:,[0]]*0+1));
 H = np.maximum(np.dot(Inputs, W[:-1,]), 0)
 W[-1,] = np.linalg.lstsq(H, Y)[0][:,0]
+val =(np.dot(H,W[-1,:]))
 obj = 0.5 * (np.linalg.norm(np.dot(H,W[-1,:]) - np.transpose(Y), 2) ** 2);
 
+plt.plot(X, Y,'*')
+plt.plot(X, val,'o')
 
-def supPretr(X, Y, fnn, iters):
-    W = np.copy(fnn.W)
-    Inputs = np.column_stack((X, X[:,[0]]*0+1));
-    def Objective(W):
-        W = W
-        H = np.maximum(np.dot(Inputs, W[:-1,]), 0)
-        W[-1,] = np.linalg.lstsq(H, Y)[0][:,0]
-        obj = 0.5 * (np.linalg.norm(np.dot(H,W[-1,:]) - np.transpose(Y), 2) ** 2);
-        return obj
-    objv = Objective(W)
-    print -1, objv
-    for i in range(iters):
-        print i
-        Wt = np.copy(W)
-        for k in range( int(np.sqrt(neurons)) ):
-            Wt[ np.random.randint(Wt.shape[0]-2), ] += np.random.randn(Wt.shape[1])*0.0001;
-        objl = Objective(Wt)
-        if objl < objv:
-            objv = objl
-            W = np.copy(Wt)
-            print objv
-    fnn.W = W
-    return objv
+plt.xlim([-0.0,1.1])
+plt.ylim([-1,10])
 
-neurons = N*2
+plt.xlabel('projection')
+plt.ylabel('label')
+plt.grid(True)
+plt.show()
+
+neurons = W.shape[1]
 layers = 1
 
 fnn = FNN(xsz, ysz, neurons,layers)
 
-objv =  supPretr(X, Y, fnn, 1000)
+fnn.W = W;
 
-print "final:",objv
-
-"""
-Inputs = np.column_stack((X, X[:,[1]]*0+1))
-H = np.maximum(np.dot(Inputs, fnn.W[:-1,]), 0)
-obt = 0.5 * (np.linalg.norm(np.dot(H,fnn.W[-1,:]) - np.transpose(Y), 2) ** 2);
-
-print obt"""
-
-#TrainNetwork(X,Y, fnn, alpha=0.000000001);
-
-print "shallow init finished"
-
-"""
-construct super deep nn
-neurons on layer: 
-    input transport:     xsz (assumption: x values are positive)
-    processing:          1
-    output transport:    ysz * 2
-
-"""
+print obj
 
 lsz = xsz + 1 + ysz*2
 
@@ -150,5 +128,5 @@ ffnnd.W[-1, -1] = -1
 ffnnd.W[-1, -2] = 1
 ffnnd.W[-1, -3] = fnn.W[-1,-1]
 
-TrainNetwork(X,Y, ffnnd, alpha=0.00000000001);
 
+print "network objective:", trainobj(ffnnd)
