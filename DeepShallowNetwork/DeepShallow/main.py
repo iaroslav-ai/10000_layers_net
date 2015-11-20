@@ -11,21 +11,22 @@ from compress_points import compress
 from fit_shallow_nn import fit_shallow_nn
 from shallow_to_deep import shallow_to_deep
 
-N = 10000;
+N = 100;
 
 # ============ loading MNIST  ============ 
 
 data = MNIST(verbose=True);
 
 # this are the contents of the loaded data:
-X = compress(data.train_images[:N,]) # here images are compressed to single number
+X, Xt = compress(data.train_images[:N,], data.test_images[:N,]) # here images are compressed to single number
 Y = data.train_labels[:N,]
-    
+Yt = data.test_labels[:N,]
+
 xsz = 1;
 ysz = 1;
 
 # network objective
-def training_loss(ffnnd):
+def loss(ffnnd, X, Y):
     Yp = X[:,0];
     for i in range(len(X)):
         Yp[i] = ffnnd.forward(X[i,])
@@ -41,4 +42,6 @@ print "shallow init MSE: ", obj # non - zero loss value do to num. errors
 
 ffnnd = shallow_to_deep(W)
 
-print "deep network MSE:", training_loss(ffnnd)
+print "deep network MSE:", loss(ffnnd, X, Y)
+
+print "deep network MSE, test:", loss(ffnnd, Xt, Yt)

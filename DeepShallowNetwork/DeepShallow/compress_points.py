@@ -4,7 +4,7 @@ Function below encodes every feature vector in matrix X with unique single numbe
 
 import numpy as np
 
-def compress(X):
+def compress(X, Xt):
     # do compression to single number encoding 
     compressed = False;
     while not compressed:
@@ -22,10 +22,21 @@ def compress(X):
         # there are colliding projections
         if not compressed:
             continue
+        
+        Ht = np.dot(Xt,w)
+        
+        m = np.min(np.concatenate((H,Ht)))
+        M = np.max(np.concatenate((H,Ht))-m)
+        
         # there are no colliding projections
         # make proj. positive and normalized
-        H = H - np.min(H);
-        H = H / np.max(H);
+        H = H - m;
+        H = H / M;
         result = np.random.rand(H.shape[0],1);
         result[:,0] = H
-    return result
+        
+        Ht = Ht - m;
+        Ht = Ht / M;
+        result_t = np.random.rand(Ht.shape[0],1);
+        result_t[:,0] = Ht
+    return result, result_t
