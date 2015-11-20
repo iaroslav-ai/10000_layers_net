@@ -10,7 +10,7 @@ from collections import namedtuple
 
 def MNIST(verbose = False):
    
-    if(verbose):print 'Started loading ... '
+    if(verbose):print 'Started loading MNIST... '
     
     MNIST_Dataset = namedtuple('MNIST_Dataset', ['train_images', 'train_labels', 'test_images', 'test_labels'])
     data = sio.loadmat('MNIST.mat');

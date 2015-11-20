@@ -19,7 +19,7 @@ class FNN:
         self.activations, self.inputs, self.bounds = [], [], []
         layer_start = 0;
         for i in range(self.layers):
-            H = np.tanh( np.dot(netinput,self.W[layer_start:(layer_start+netinput.shape[0]),]) )
+            H = np.maximum( np.dot(netinput,self.W[layer_start:(layer_start+netinput.shape[0]),]) , 0)
             if self.training:
                 self.activations.append(np.copy(H));
                 self.inputs.append(np.copy(netinput));
